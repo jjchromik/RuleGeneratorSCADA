@@ -1,0 +1,6 @@
+OPTION name To_Alpha_GlobalKnowledge_Scenario_5
+OPTION description Scenario 5: Topology from Paper 'What's under the hood?'. Voltage too high.
+
+# Set voltage on one line too high
+MEASUREMENT F RTU_GLOBAL_M51_V 255
+MEASUREMENT F RTU_GLOBAL_M52_V 255

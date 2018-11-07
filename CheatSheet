@@ -1,0 +1,45 @@
+# Bro
+## Run analysis on Masterthesis scenarios (3 different shells):
+cd /data/pythontests/ && bro -i eth0 -C T104_BroccoliStateManager_Masterthesis.bro t104.evt 
+cd /data/pythontests/ && python TestScenariosBroMasterthesis.py
+tcpreplay --intf1=eth0 /data/pcap/scenarios/Masterthesis_GlobalKnowledge_Normalized_Scenario1.pcapng
+
+## Run analysis on other scenarios (3 different shells):
+cd /data/pythontests/ && bro -i eth0 -C T104_BroccoliStateManager_Alpha.bro t104.evt 
+cd /data/pythontests/ && python TestScenariosBroAlpha.py
+tcpreplay --pps 100 --intf1=eth0 /data/pcap/scenarios/Alpha_GlobalKnowledge_Normalized_Scenario1.pcapng
+
+## Run bro pcap summary analysis:
+cd /data/scripts && bro -C -r /data/pcap/scenarios/Masterthesis_GlobalKnowledge_Normalized_Scenario1.pcapng t104.evt T104_STATS_Events.bro
+cd /data/scripts && bro -C -r /data/pcap/scenarios/Masterthesis_GlobalKnowledge_Normalized_Scenario1.pcapng t104.evt T104_MV_Events.bro
+cd /data/scripts && bro -C -r /data/pcap/scenarios/Masterthesis_GlobalKnowledge_Normalized_Scenario1.pcapng t104.evt T104_CM_Events.bro
+
+# Docker
+## Run docker (Workspace, broccoli):
+docker run -i -t -v $(pwd)/workspace:/data "rf/broccoli-hilti"
+
+## Open additional shells
+docker container ls
+docker exec -it <containerID> bash
+docker exec -it $(docker container ls | grep rf/broccoli-hilti | awk '{ print $1 }' | head -1) bash
+
+## Build image rf/broccoli-hilti:
+cd docker/Dockerfile && docker build -t rf/broccoli-hilti .
+
+## Test image (this should produce NO output (python import errors) at all:
+docker run -t rf/broccoli-hilti python -c "import broccoli"
+
+# Spicy
+## Run spicy isolated:
+cd /data/scripts && cat pcap/u_frame_hex.dat | spicy-driver t104.spicy -p T104::Apcis
+
+## Compile spicy:
+hilti-build -o compiled.out /opt/hilti/tools/spicy-driver/spicy-driver.cc source.spicy 
+
+## Debug (does not work properly right now):
+cat httpinput | HILTI_DEBUG=spicy spicy-driver source.spicy -g -d
+
+# TCP Replay
+## Replay packets
+tcpreplay --intf1=eth0 /data/pcap/Masterthesis_GlobalKnowledge_Normalized_Scenario1.pcapng
+(Interesting options: --pps=100 --loop 100 --multiplier=3)

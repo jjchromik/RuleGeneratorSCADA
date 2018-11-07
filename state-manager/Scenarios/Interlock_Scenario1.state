@@ -1,0 +1,4 @@
+OPTION name To_Interlock_Scenario1
+OPTION description Scenario 1: Basic local interlock Example. Normal operation.
+
+# No values set (Scenario 1 is BasicCase)

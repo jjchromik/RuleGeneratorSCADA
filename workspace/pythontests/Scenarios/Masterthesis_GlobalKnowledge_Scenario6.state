@@ -1,0 +1,50 @@
+OPTION name Masterthesis_GlobalKnowledge_Scenario_6
+OPTION description Scenario 6: Topology for scenario evaluation in master thesis. Safe switch command sequence
+
+# Wait some time...
+WAIT 3
+
+# Set switch at bus 2 on line 6 to open
+COMMAND B RTU_BUS2_SW62_STATE False
+
+# Wait some time until new measurements...
+WAIT 3
+
+# New measurements
+MEASUREMENT B RTU_BUS2_SW62_STATE False
+MEASUREMENT F RTU_BUS2_M62_I 0
+MEASUREMENT F RTU_BUS2_M72_I 270
+MEASUREMENT F RTU_BUS3_M63_I 0
+MEASUREMENT F RTU_BUS3_M73_I 270
+
+# Wait some time...
+WAIT 3
+
+# Set switch at bus 2 on line 6 to closed
+COMMAND B RTU_BUS2_SW62_STATE True
+
+# Wait some time until new measurements...
+WAIT 3
+
+# New measurements
+MEASUREMENT B RTU_BUS2_SW62_STATE True
+MEASUREMENT F RTU_BUS2_M62_I 135
+MEASUREMENT F RTU_BUS2_M72_I 135
+MEASUREMENT F RTU_BUS3_M63_I 135
+MEASUREMENT F RTU_BUS3_M73_I 135
+
+# Wait some time...
+WAIT 3
+
+# Set switch at bus 2 on line 7 to open
+COMMAND B RTU_BUS2_SW72_STATE False
+
+# Wait some time until new measurements...
+WAIT 3
+
+# New measurements
+MEASUREMENT B RTU_BUS2_SW72_STATE True
+MEASUREMENT F RTU_BUS2_M62_I 270
+MEASUREMENT F RTU_BUS2_M72_I 0
+MEASUREMENT F RTU_BUS3_M63_I 270
+MEASUREMENT F RTU_BUS3_M73_I 0

@@ -1,0 +1,11 @@
+OPTION name To_Alpha_LocalKnowledge_Scenario_3
+OPTION description Scenario 3: Topology from Paper 'What's under the hood?'. Undesirable command causes too high current on one line.
+
+# Set one switch to opened
+MEASUREMENT B RTU_GLOBAL_SW51_STATE False
+
+# Set current and voltage for affected meters
+MEASUREMENT F RTU_GLOBAL_M51_I 0.0
+MEASUREMENT F RTU_GLOBAL_M51_V 0.0
+MEASUREMENT F RTU_GLOBAL_M31_I 0.33
+MEASUREMENT F RTU_GLOBAL_M41_I 0.33

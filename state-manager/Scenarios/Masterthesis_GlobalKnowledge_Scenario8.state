@@ -1,0 +1,34 @@
+OPTION name Masterthesis_GlobalKnowledge_Scenario_8
+OPTION description Scenario 8: Topology for scenario evaluation in master thesis. Safe and unsafe transformer tap position changes
+
+# Wait some time...
+WAIT 3
+
+# Set transformer tap position of transformer 2 (safe)
+COMMAND F RTU_BUS3T_T2_TAP 2
+
+# Wait some time until new measurements...
+WAIT 3
+
+# New measurements
+MEASUREMENT F RTU_BUS3T_T2_TAP 2
+MEASUREMENT F RTU_BUS3T_M114_V 5882.353
+MEASUREMENT F RTU_BUS3T_M114_I 442
+MEASUREMENT F RTU_GENCON_M115_V 5882.353
+MEASUREMENT F RTU_GENCON_M115_I 442
+
+# Wait some time...
+WAIT 3
+
+# Set transformer tap positions of transformer 1 (unsafe)
+COMMAND F RTU_BUS3T_T1_TAP 2
+
+# Wait some time until new measurements...
+WAIT 3
+
+# New measurements
+MEASUREMENT F RTU_BUS3T_T1_TAP 2
+MEASUREMENT F RTU_BUS3T_M104_V 200
+MEASUREMENT F RTU_BUS3T_M104_I 499.99
+MEASUREMENT F RTU_GENCON_M105_V 200
+MEASUREMENT F RTU_GENCON_M105_I 499.99

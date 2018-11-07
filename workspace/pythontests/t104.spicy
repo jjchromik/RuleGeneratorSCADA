@@ -1,0 +1,838 @@
+module T104;
+
+#author: Robert Udd; Justyna Chromik
+#Parser for IEC 60870-5-104, version for Spicy
+
+import Spicy;
+const ioa_length = 3;
+
+type Modes = enum {
+    I = 0,
+    S = 1,
+    #Undefined = 2, # It is still I
+    U = 3
+};
+
+### Info object code structure
+# Level Symbol  Description
+#   1   M_      Monitored information
+#       C_      Control information
+#       P_      Parameter
+#       F_      File transfer
+#   2   Various See actual usage
+#   3   _Nx     Not time tagged
+#       _Tx     Time tagged
+#       _xA     Type A: status and normalized, with quality
+#       _xB     Type B: scaled, with quality
+#       _xC     Type C: short floating point, with quality
+#       _xD     Type D: normalized without quality
+#
+
+export type Info_obj_code= enum {
+    #process information in monitoring direction 1-29
+    M_SP_NA_1 = 1,      #implemented R. Udd
+    M_SP_TA_1 = 2,      #implemented: example of Type ID not applicable to the companion standard
+    M_DP_NA_1 = 3,      #implemented JCh
+    M_DP_TA_1 = 4,      # X: example of Type ID not applicable to the companion standard
+    M_ST_NA_1 = 5,      #implemented JCh
+    M_ST_TA_1 = 6,      # X: example of Type ID not applicable to the companion standard
+    M_BO_NA_1 = 7,      #implemented JCh/ test the biststing 
+    M_BO_TA_1 = 8,
+    M_ME_NA_1 = 9,      #implemented R. Udd
+    M_ME_TA_1 = 10,
+    M_ME_NB_1 = 11,     #implemented JCh
+    M_ME_TB_1 = 12,
+    M_ME_NC_1 = 13,     #implemented JCh
+    M_ME_TC_1 = 14,
+    M_IT_NA_1 = 15,
+    M_IT_TA_1 = 16,
+    M_EP_TA_1 = 17,
+    M_EP_TB_1 = 18,
+    M_EP_TC_1 = 19, 
+    M_PS_NA_1 = 20, 
+    M_ME_ND_1 = 21,     #implemented RF
+    #22-29 reserved
+    #process information in monitoring direction cont’d 30-44
+    M_SP_TB_1 = 30,     #implemented R. Udd
+    M_DP_TB_1 = 31,     #implemented JCh
+    M_ST_TB_1 = 32,     #implemented JCh
+    M_BO_TB_1 = 33,     #implemented JCh /test the bitstring? 
+    M_ME_TD_1 = 34,     #implemented JCh
+    M_ME_TE_1 = 35,     #implemented JCh
+    M_ME_TF_1 = 36,     #implemented JCh
+    M_IT_TB_1 = 37,
+    M_EP_TD_1 = 38,
+    M_EP_TE_1 = 39,
+    M_EP_TF_1 = 40,
+    #41-44 reserved
+    #process information in control direction 45-51
+    C_SC_NA_1 = 45,     #implemented R. Udd
+    C_DC_NA_1 = 46,     #implemented JCh 
+    C_RC_NA_1 = 47,     #implemented JCh 
+    C_SE_NA_1 = 48,     #implemented JCh
+    C_SE_NB_1 = 49,     #implemented JCh
+    C_SE_NC_1 = 50,     #implemented JCh
+    C_BO_NA_1 = 51,     #implemented JCh /test the bitstring? 
+    #52-57 reserved
+    #process information in control direction with time tag 58-64
+    C_SC_TA_1 = 58,     #implemented JCh
+    C_DC_TA_1 = 59,     #implemented RF
+    C_RC_TA_1 = 60,
+    C_SE_TA_1 = 61,     #implemented JCh
+    C_SE_TB_1 = 62,
+    C_SE_TC_1 = 63,     #implemented RF
+    C_BO_TA_1 = 64,
+    #65-69 reserved
+    #system information in monitor direction 70-99
+    M_EI_NA_1 = 70,     #implemented JCh
+    #71-99 reserved
+    #system information in control direction 100-109
+    C_IC_NA_1 = 100,    #implemented R. Udd
+    C_CI_NA_1 = 101,    #implemented JCh
+    C_RD_NA_1 = 102,    #implemented JCh
+    C_CS_NA_1 = 103,    #implemented JCh
+    C_TS_NA_1 = 104,
+    C_RP_NA_1 = 105,
+    C_CD_NA_1 = 106,
+    C_TS_TA_1 = 107,    #implemented JCh
+    #108-109 reserved 
+    #parameter in control direction 110-119
+    P_ME_NA_1 = 110,
+    P_ME_NB_1 = 111,
+    P_ME_NC_1 = 112,
+    P_AC_NA_1 = 113,
+    #114-119 reserved
+    #file transfer 120-127
+    F_FR_NA_1 = 120,
+    F_SR_NA_1 = 121, 
+    F_SC_NA_1 = 122,
+    F_LS_NA_1 = 123,
+    F_AF_NA_1 = 124,
+    F_SG_NA_1 = 125,
+    F_DR_TA_1 = 126
+    #127 reserved
+    
+};
+
+#Cause of transmission
+export type Cot_code = enum {
+    #process information in monitoring direction 1-29
+    Not_used = 0,
+    Periodic_cyclic = 1,
+    Background_scan = 2,
+    Spontaneous = 3,
+    Initialized  = 4, 
+    Request_or_requested = 5,
+    Activation = 6,
+    Activation_confirmation = 7,
+    Deactivation = 8,
+    Deactivation_confirmation = 9,
+    Activation_termination = 10,
+    Return_information_caused_by_a_remote_command = 11,
+    Return_information_caused_by_a_local_command = 12,
+    File_transfer = 13,
+    #14–19 Reserved for future definitions
+    Interrogated_by_station_interrogation = 20,
+    Interrogated_by_group_1_interrogation = 21,
+    Interrogated_by_group_2_interrogation = 22,
+    Interrogated_by_group_3_interrogation = 23,
+    Interrogated_by_group_4_interrogation = 24,
+    Interrogated_by_group_5_interrogation = 25,
+    Interrogated_by_group_6_interrogation = 26,
+    Interrogated_by_group_7_interrogation = 27,
+    Interrogated_by_group_8_interrogation = 28,
+    Interrogated_by_group_9_interrogation = 29,
+    Interrogated_by_group_10_interrogation = 30,
+    Interrogated_by_group_11_interrogation = 31,
+    Interrogated_by_group_12_interrogation = 32,
+    Interrogated_by_group_13_interrogation = 33,
+    Interrogated_by_group_14_interrogation = 34,
+    Interrogated_by_group_15_interrogation = 35,
+    Interrogated_by_group_16_interrogation = 36,
+    Requested_by_general_counter_request = 37,
+    Requested_by_group_1_counter_request = 38,
+    Requested_by_group_2_counter_request = 39,
+    Requested_by_group_3_counter_request = 40,
+    Requested_by_group_4_counter_request = 41,
+    #42–43 Reserved for future definitions
+    Unknown_type_identification = 44,
+    Unknown_cause_of_transmission = 45,
+    Unknown_common_address_of_ASDU =46,
+    Unknown_information_object_address = 47,
+    Unknown_2 = 48,
+    Unknown_3 = 49
+};
+
+export type Apcis = unit {
+    :  list<Apci> &transient &until(False); #TODO better solution needed
+    on %done {
+    #print self;
+    }
+};
+
+export type Apci = unit {
+%byteorder = Spicy::ByteOrder::Little; 
+    start :  b"\x68" &convert=$$.to_uint(Spicy::ByteOrder::Little);
+    #start : uint<8>;
+    apduLen : uint<8>;
+    ctrl : bitfield(32){
+        not_i_mode : 0; 
+        mode : 0..1;  #Only interesting of not_i_mode == 1
+        i_send_seq : 1..15; #Only the I mode uses this
+        u_start_dt : 2..3;
+        u_stop_dt : 4..5;
+        u_test_fr : 6..7;
+        recv_seq : 17..31; #Not used by the U mode
+    };
+    #The first or the two first bits are used to interpret how the rest of the byte is parsed
+    #TODO make a better solution for reading one bit and then create a fitting bitfield.
+    
+    asdu : Asdu if (self.ctrl.not_i_mode == 0);
+
+     # switch (self.ctrl.mode) {
+     #     0 -> asdu : Asdu;
+     #     1 -> strange : b"";
+     #     2 -> asdu : Asdu;
+     #     3 -> strange : b"";
+     # };
+    
+    on %init {
+       #print "INIT APCI";
+    }
+
+    on ctrl {
+      #print "after ctrl APCI", self;
+    }
+
+    on %done {
+        #print "DONE APCI";
+    }
+};
+
+
+export type Asdu = unit {
+%ByteOrder = Spicy::ByteOrder::Little;
+    info_obj_type : uint<8> &convert=Info_obj_code($$);
+    data_unit_identifier : bitfield (8) {
+        seq : 7;
+        num_ix : 0..6;
+    };
+    cause_of_transmission : bitfield (8) {
+        cot : 0..5 &convert=Cot_code($$);
+        negative : 6;
+        test : 7;
+    };
+    originator_address : uint<8>;
+    common_address : uint <16> &byteorder = Spicy::ByteOrder::Little;
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (self.data_unit_identifier.seq); #if seq == 0 the IOA should be in each asdu
+    switch (self.info_obj_type){
+        #1
+        Info_obj_code::M_SP_NA_1 -> m_sp_na_1 : Single_Point_Information(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #2
+        Info_obj_code::M_SP_TA_1 -> m_sp_ta_1 : Single_Point_Information_With_TT(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #3
+        Info_obj_code::M_DP_NA_1 -> m_dp_na_1 : Double_Point_Information(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #5
+        Info_obj_code::M_ST_NA_1 -> m_st_na_1 : Step_Position_Information(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #7
+        Info_obj_code::M_BO_NA_1 -> m_bo_na_1 : Bitstring_32_Bits(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #9
+        Info_obj_code::M_ME_NA_1 -> m_me_na_1 : Measured_Value_Normalized_Value(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #11 
+        Info_obj_code::M_ME_NB_1 -> m_me_nb_1 : Measured_Value_Scaled_Value(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #13 
+        Info_obj_code::M_ME_NC_1 -> m_me_nc_1 : Measured_Value_Short_Floating_Point_Value(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #21
+        Info_obj_code::M_ME_ND_1 -> m_me_nd_1 : Measured_Value_Normalized_Value_WO_QDS(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #30
+        Info_obj_code::M_SP_TB_1 -> m_sp_tb_1 : Single_Point_Information_With_TTCP56(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #31
+        Info_obj_code::M_DP_TB_1 -> m_dp_tb_1 : Double_Point_Information_With_TTCP56(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #32
+        Info_obj_code::M_ST_TB_1 -> m_st_tb_1 : Step_Position_Information_With_TTCP56(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #33
+        Info_obj_code::M_BO_TB_1 -> m_bo_tb_1 : Bitstring_32_Bits_With_TTCP56(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #34
+        Info_obj_code::M_ME_TD_1 -> m_me_td_1 : Measured_Value_Normalized_Value_With_TTCP56(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #35
+        Info_obj_code::M_ME_TE_1 -> m_me_te_1 : Measured_Value_Scaled_Value_With_TTCP56(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #36 
+        Info_obj_code::M_ME_TF_1 -> m_me_tf_1 : Measured_Value_Short_Floating_Point_With_TTCP56(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #45
+        Info_obj_code::C_SC_NA_1 -> c_sc_na_1 : Single_Command(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #46
+        Info_obj_code::C_DC_NA_1 -> c_dc_na_1 : Double_Command(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #47
+        Info_obj_code::C_RC_NA_1 -> c_rc_na_1 : Regulating_Step_Command(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #48
+        Info_obj_code::C_SE_NA_1 -> c_se_na_1 : Set_Point_Command_Normalized_Value(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #49
+        Info_obj_code::C_SE_NB_1 -> c_se_nb_1 : Set_Point_Command_Scaled_Value(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #50 
+        Info_obj_code::C_SE_NC_1 -> c_se_nc_1 : Set_Point_Command_Short_Floating_Point_Value(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #51
+        Info_obj_code::C_BO_NA_1 -> c_bo_na_1 : Bitstring_32_Bits_Command(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #58
+        Info_obj_code::C_SC_TA_1 -> c_sc_ta_1 : Single_Command_With_TTCP56(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #59
+        Info_obj_code::C_DC_TA_1 -> c_dc_ta_1 : Double_Command_With_TTCP56(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];        
+        #61
+        Info_obj_code::C_SE_TA_1 -> c_se_ta_1 : Set_Point_Command_Normalized_Value_With_TTCP56(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #63
+        Info_obj_code::C_SE_TC_1 -> c_se_tc_1 : Set_Point_Command_Shot_Floating_Point_With_TTCP56(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];        
+        #70 
+        Info_obj_code::M_EI_NA_1 -> m_ei_na_1 : End_Of_Initialization(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #100
+        Info_obj_code::C_IC_NA_1 -> c_ic_na_1 : Interrogation_Command(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #101
+        Info_obj_code::C_CI_NA_1 -> c_ci_na_1 : Counter_Interrogation_Command(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #102
+        Info_obj_code::C_RD_NA_1 -> c_rd_na_1 : Read_Command(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #103
+        Info_obj_code::C_CS_NA_1 -> c_cs_na_1 : Clock_Synchronization_Command(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+        #107
+        Info_obj_code::C_TS_TA_1 -> c_ts_ta_1 : Test_Command_With_TTCP56(self.data_unit_identifier.seq)[self.data_unit_identifier.num_ix];
+    };
+    on %init {
+        #print "INIT ASDU";
+    }
+    on %done {
+        #print self;
+    }
+}; 
+
+
+type CP24TIME2A = unit {
+    milli : uint<16> &byteorder = Spicy::ByteOrder::Little;
+    minute : uint<8>;
+
+    on %done {
+    #remove unwanted bits
+     self.minute = self.minute & 63;
+     }
+};
+
+type CP56TIME2A = unit {
+    milli : uint<16> &byteorder = Spicy::ByteOrder::Little; 
+    minute : uint<8>;
+    hour : uint<8>;
+    day : uint<8>;
+    #var day_of_week : uint<8> = self.day & 224;
+    mon : uint<8>;
+    year : uint<8>;
+
+    on %done {
+    #remove unwanted bits
+     self.minute = self.minute & 63;
+     self.hour   = self.hour & 31;
+     self.day    = self.day & 31;
+     self.mon    = self.mon & 15;
+     self.year   = self.year & 127;
+    }
+};
+
+#1
+type Single_Point_Information = unit (seq : bool){ #1
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); #not 100% sure that the length is always correct
+    single_point_information_with_quality_descriptor : SIQ;
+    on %init {
+    #print "INIT 1";
+    }
+};
+
+#2
+type Single_Point_Information_With_TT = unit (seq : bool){ #2 
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); #not 100% sure that the length is always correct
+    single_point_information_with_quality_descriptor : SIQ;
+    cp24time2a : CP24TIME2A;
+    on %init {
+    #print "INIT 2";
+    } 
+};
+
+#3
+type Double_Point_Information = unit (seq : bool){ #3 
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); #not 100% sure that the length is always correct
+    double_point_information_with_quality_descriptor : DIQ;
+    on %init {
+    #print "INIT 3";
+    } 
+};
+
+#5
+type Step_Position_Information = unit (seq : bool){ #5
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); #not 100% sure that the length is always correct
+    position_value_with_transient_state_indicator : VTI;
+    double_point_information_with_quality_descriptor : QDS;
+    on %init {
+    #print "INIT 5";
+    } 
+};
+
+#7
+type Bitstring_32_Bits = unit (seq : bool){ #7
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); #not 100% sure that the length is always correct
+    binary_state_information : bytes &length=4;# &byteorder = Spicy::ByteOrder::Little;  #bitfield(32){ val: 0..31; }
+    quality_descriptor : QDS;
+    on %init {
+    print "INIT 7";
+    } 
+};
+
+#9
+type Measured_Value_Normalized_Value = unit (seq : bool){ #9
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); #not 100% sure that the length is always correct
+    normalized_value : bytes &length=2 &convert=$$.to_uint(Spicy::ByteOrder::Little);
+    double_point_information_with_quality_descriptor : QDS;
+    on %init {
+    #print "INIT 9";
+    }
+};
+
+#11 
+type Measured_Value_Scaled_Value = unit (seq : bool){ #11
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); #not 100% sure that the length is always correct
+    scaled_value : bytes &length=2;
+    double_point_information_with_quality_descriptor : QDS;
+    on %init {
+    #print "INIT 11";
+    }
+};
+
+#13 
+type Measured_Value_Short_Floating_Point_Value = unit (seq : bool){ #13
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); #not 100% sure that the length is always correct
+    value : bytes &length=4 &convert=$$.to_uint(Spicy::ByteOrder::Little);
+    double_point_information_with_quality_descriptor : QDS;
+    on %init {
+    #print "INIT 13";
+    }
+};
+
+#21
+type Measured_Value_Normalized_Value_WO_QDS = unit (seq : bool){
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); #not 100% sure that the length is always correct
+    normalized_value : bytes &length=2 &convert=$$.to_uint(Spicy::ByteOrder::Little);
+    on %init {
+    #print "INIT 21";
+    }
+};
+
+#30
+type Single_Point_Information_With_TTCP56 = unit (seq : bool){ 
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); #not 100% sure that the length is always correct
+    single_point_information_with_quality_descriptor : SIQ;
+    cp56time2a : CP56TIME2A;#bytes &length=7;
+    on %init {
+    #print "INIT 30";
+    }
+};
+
+#31
+type Double_Point_Information_With_TTCP56 = unit (seq : bool){ 
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); #not 100% sure that the length is always correct
+    double_point_information_with_quality_descriptor : DIQ;
+    cp56time2a : CP56TIME2A;#bytes &length=7;
+    on %init {
+    #print "INIT 31";
+    }
+};
+
+#32
+type Step_Position_Information_With_TTCP56 = unit (seq : bool){ 
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); #not 100% sure that the length is always correct
+    position_value_with_transient_state_indicator : VTI;
+    quality_descriptor : QDS;
+    cp56time2a : CP56TIME2A;#bytes &length=7;
+    on %init {
+    #print "INIT 32";
+    }
+};
+
+#33
+type Bitstring_32_Bits_With_TTCP56 = unit (seq : bool){ #33
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); #not 100% sure that the length is always correct
+    binary_state_information : bitfield(32){val : 0..31; } &byteorder = Spicy::ByteOrder::Little;
+    quality_descriptor : QDS;
+    cp56time2a : CP56TIME2A;#bytes &length=7;
+    on %init {
+    print "INIT 33";
+    } 
+};
+
+#34
+export type Measured_Value_Normalized_Value_With_TTCP56 = unit(seq : bool) { 
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq);
+    normalized_value : bytes &length=2 &convert=$$.to_uint(Spicy::ByteOrder::Little);
+    double_point_information_with_quality_descriptor : QDS;
+    cp56time2a : CP56TIME2A;#bytes &length=7;
+    on %init {
+    #   print "INIT 34";
+    }
+};
+
+#35
+type Measured_Value_Scaled_Value_With_TTCP56 = unit(seq : bool) { 
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq);
+    scaled_value : bytes &length=2 &convert=$$.to_uint(Spicy::ByteOrder::Little);
+    double_point_information_with_quality_descriptor : QDS;
+    cp56time2a : CP56TIME2A;#bytes &length=7;
+    on %init {
+    #print "INIT 35";
+    }
+};
+
+#36
+export type Measured_Value_Short_Floating_Point_With_TTCP56 = unit (seq : bool){ #36
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); 
+    value : bytes &length=4 &convert=$$.to_uint(Spicy::ByteOrder::Little);
+    double_point_information_with_quality_descriptor : QDS;
+    cp56time2a : CP56TIME2A;#bytes &length=7;
+    on %init {
+    #print "INIT 36";
+    }
+};
+
+#45
+type Single_Command = unit (seq : bool){ #45 only SEQ=0 allowed
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); #not 100% sure that the length is always correct
+    single_command : SCO;
+    on %init {
+    #print "INIT 45";
+    }
+};
+
+#46
+type Double_Command = unit (seq : bool){ #46 only SEQ=0 allowed
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); #not 100% sure that the length is always correct
+    double_command : DCO;
+    on %init {
+    #print "INIT 46";
+    }
+};
+
+#47
+type Regulating_Step_Command = unit (seq : bool){ #47 only SEQ=0 allowed
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); #not 100% sure that the length is always correct
+    regulating_step_command : RCO;
+    on %init {
+    #print "INIT 47";
+    }
+};
+
+
+#48
+type Set_Point_Command_Normalized_Value = unit (seq : bool){ #48
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); 
+    normalized_value : bytes &length=2 &convert=$$.to_uint(Spicy::ByteOrder::Little);
+    qualifier_of_set-point_command: QOS;
+    on %init {
+    #print "INIT 48";
+    }
+};
+
+#49
+type Set_Point_Command_Scaled_Value = unit (seq : bool){ #49
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); 
+    scaled_value : bytes &length=2 &convert=$$.to_uint(Spicy::ByteOrder::Little);
+    qualifier_of_set-point_command: QOS;
+    on %init {
+    #print "INIT 49";
+    }
+};
+
+#50
+type Set_Point_Command_Short_Floating_Point_Value = unit (seq : bool){ #50
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); 
+    value : bytes &length=4 &convert=$$.to_uint(Spicy::ByteOrder::Little);
+    qualifier_of_set-point_command: QOS;
+    on %init {
+    #print "INIT 50";
+    }
+};
+
+#51
+type Bitstring_32_Bits_Command = unit (seq : bool){ #51
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); 
+    binary_state_information : bitfield(32){val : 0..31; } &byteorder = Spicy::ByteOrder::Little;
+    on %init {
+    print "INIT 51";
+    }
+};
+
+#58
+type Single_Command_With_TTCP56 = unit (seq : bool){ #58 only SEQ=0 allowed
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); 
+    single_command : SCO;
+    cp56time2a : CP56TIME2A;#bytes &length=7;
+    on %init {
+    #print "INIT 58";
+    }
+};
+
+#59
+type Double_Command_With_TTCP56 = unit (seq : bool){ #59 only SEQ=0 allowed
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); 
+    double_command : DCO;
+    cp56time2a : CP56TIME2A;#bytes &length=7;
+    on %init {
+    #print "INIT 59";
+    }
+};
+
+#61
+type Set_Point_Command_Normalized_Value_With_TTCP56 = unit (seq : bool){ #61 only SEQ=0 allowed
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); 
+    normalized_value: bytes &length=2 &convert=$$.to_uint(Spicy::ByteOrder::Little);   # TODO: set as separate value
+    qos : QOS;  # qualifier of setpoint command
+    cp56time2a : CP56TIME2A;#bytes &length=7;
+    on %init {
+    #print "INIT 61";
+    }
+};
+
+#63
+type Set_Point_Command_Shot_Floating_Point_With_TTCP56 = unit (seq : bool){ #63 only SEQ=0 allowed
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); 
+    value : bytes &length=4 &convert=$$.to_uint(Spicy::ByteOrder::Little);
+    qos : QOS;  # qualifier of setpoint command
+    cp56time2a : CP56TIME2A;#bytes &length=7;
+    on %init {
+    #print "INIT 63";
+    }
+};
+
+#70 
+type End_Of_Initialization = unit (seq : bool){ #70 only SEQ=0 allowed
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); 
+    cause_of_initialization: COI;
+    on %init {
+    #print "INIT 70";
+    }
+};
+
+#100
+type Interrogation_Command = unit (seq : bool){ #100 only SEQ=0 allowed
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); #not 100% sure that the length is always correct
+    qualifier_of_interrogation: uint<8>;
+    on %init {
+    #print "INIT 100";
+    }
+   };
+
+#101
+type Counter_Interrogation_Command = unit (seq : bool){ #101 only SEQ=0 allowed
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); 
+    qualifier_of_counter_interrogation: uint<8>;
+    on %init {
+    #print "INIT 101";
+    }
+   };
+
+#102
+type Read_Command = unit (seq : bool){ #102
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); 
+    on %init {
+    #print "INIT 102";
+    }
+   };
+
+#103
+type Clock_Synchronization_Command = unit (seq : bool){ #103 only SEQ=0 allowed
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); 
+    cp56time2a : CP56TIME2A;
+    on %init {
+    #print "INIT 103";
+    }
+   };
+
+#107
+type Test_Command_With_TTCP56 = unit (seq : bool){ #107 only SEQ=0 allowed
+    info_obj_addr: bytes &length=ioa_length &convert=$$.to_uint(Spicy::ByteOrder::Little) if (!seq); 
+    tsc: uint<16>; # test sequence counter
+    cp56time2a : CP56TIME2A;#bytes &length=7;
+    on %init {
+    #print "INIT 107";
+    }
+};
+
+#Qualifier of set-point command
+type QOS = bitfield(8) {
+    ql : 0..6; #
+    se : 7;    # execute (0)
+};
+
+#Quality descriptor
+type QDS = bitfield(8) {
+    ov : 0; #overflow
+    bl : 4; #blocked
+    sb : 5; #substituted
+    nt : 6; #not topical
+    iv : 7; #invalid
+};
+
+#Single-point information with quality descriptor
+type SIQ = bitfield(8) {
+    st : 0; #status
+    bl : 4; #blocked
+    sb : 5; #substituted
+    nt : 6; #not topical
+    iv : 7; #invalid
+};
+
+#Double-point information with quality descriptor
+type DIQ = bitfield(8) {
+    st : 0..1;#status
+    bl : 4; #blocked
+    sb : 5; #substituted
+    nt : 6; #not topical
+    iv : 7; #invalid
+};
+
+#Single command
+type SCO = bitfield(8) {
+    scs : 0;    
+    qu : 2..6; #not topical
+    se : 7; #invalid
+};
+
+#Double command
+type DCO = bitfield(8) {
+    dcs : 0..1;
+    qu : 2..6; #no pulse defined / not topical
+    se : 7; #invalid
+};
+
+#Regulating step command
+type RCO = bitfield(8) {
+    rcs : 0..1;
+    qu : 2..6; #no pulse defined / not topical
+    se : 7; #invalid
+};
+
+#Value with transient state indication
+type VTI = bitfield(8) {
+    val : 0..6; # value
+    tr : 7; #transient
+};
+
+#Cause of initialization
+type COI = bitfield(8) {
+    r : 0..6; # local power switch on
+    i : 7; # initialization
+};
+
+
+################################################
+#                Bro objects                   #
+################################################
+
+
+tuple <bool, bool, uint64> 
+bro_cot (asdu : Asdu) {
+    return (asdu.cause_of_transmission.negative, asdu.cause_of_transmission.test, asdu.common_address); #cast <uint64>(asdu.cause_of_transmission.cot));
+}
+
+#1
+tuple <uint64, bool> 
+bro_m_sp_na_1 (asdu: Single_Point_Information) {
+    return (asdu.info_obj_addr, asdu.single_point_information_with_quality_descriptor.st);
+}
+
+#3
+tuple <uint64, uint8> 
+bro_m_dp_na_1 (asdu: Double_Point_Information) {
+    return (asdu.info_obj_addr, asdu.double_point_information_with_quality_descriptor.st);
+}
+
+#9
+tuple <uint64, uint64>
+bro_m_me_na_1 (asdu : Measured_Value_Normalized_Value) {
+    return (asdu.info_obj_addr, asdu.normalized_value);
+}
+
+#13
+tuple <uint64, uint64>
+bro_m_me_nc_1 (asdu : Measured_Value_Short_Floating_Point_Value) {
+    return (asdu.info_obj_addr, asdu.value);
+}
+
+#21
+tuple <uint64, uint64>
+bro_m_me_nd_1 (asdu : Measured_Value_Normalized_Value_WO_QDS) {
+    return (asdu.info_obj_addr, asdu.normalized_value);
+}
+
+#30
+tuple <uint64, bool> 
+bro_m_sp_tb_1 (asdu: Single_Point_Information_With_TTCP56) {
+    return (asdu.info_obj_addr, asdu.single_point_information_with_quality_descriptor.st);
+}
+
+#31
+tuple <uint64, uint8> 
+bro_m_dp_tb_1 (asdu: Double_Point_Information_With_TTCP56) {
+    return (asdu.info_obj_addr, asdu.double_point_information_with_quality_descriptor.st);
+}
+
+#34
+tuple <uint64, uint64>
+bro_m_me_td_1 (asdu : Measured_Value_Normalized_Value_With_TTCP56) {
+    return (asdu.info_obj_addr, asdu.normalized_value);
+}
+
+#36
+tuple <uint64, uint64>
+bro_m_me_tf_1 (asdu : Measured_Value_Short_Floating_Point_With_TTCP56) {
+    return (asdu.info_obj_addr, asdu.value);
+}
+
+#45
+tuple <uint64, bool> 
+bro_c_sc_na_1 (asdu: Single_Command) {
+    return (asdu.info_obj_addr, asdu.single_command.scs);
+}
+
+#46
+tuple <uint64, uint8> 
+bro_c_dc_na_1 (asdu: Double_Command) {
+    return (asdu.info_obj_addr, asdu.double_command.dcs);
+}
+
+#48
+tuple <uint64, uint64 >
+#, bitfield<8>, CP56TIME2A> 
+bro_c_se_na_1 (asdu : Set_Point_Command_Normalized_Value) {
+    return (asdu.info_obj_addr, asdu.normalized_value);
+}
+
+#50
+tuple <uint64, uint64 >
+bro_c_se_nc_1 (asdu : Set_Point_Command_Short_Floating_Point_Value) {
+    return (asdu.info_obj_addr, asdu.value);
+}
+
+#58
+tuple <uint64, bool> 
+bro_c_sc_ta_1 (asdu: Single_Command_With_TTCP56) {
+    return (asdu.info_obj_addr, asdu.single_command.scs);
+}
+
+#59
+tuple <uint64, uint8> 
+bro_c_dc_ta_1 (asdu: Double_Command_With_TTCP56) {
+    return (asdu.info_obj_addr, asdu.double_command.dcs);
+}
+
+#61
+tuple <uint64, uint64 >
+#, bitfield<8>, CP56TIME2A> 
+bro_c_se_ta_1 (asdu : Set_Point_Command_Normalized_Value_With_TTCP56) {
+    return (asdu.info_obj_addr, asdu.normalized_value);
+}
+
+#63
+tuple <uint64, uint64 >
+bro_c_se_tc_1 (asdu : Set_Point_Command_Shot_Floating_Point_With_TTCP56) {
+    return (asdu.info_obj_addr, asdu.value);
+}

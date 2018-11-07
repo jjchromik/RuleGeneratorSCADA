@@ -1,0 +1,5 @@
+OPTION name To_Alpha_GlobalKnowledge_Scenario_2
+OPTION description Scenario 2: Topology from Paper 'What's under the hood?'. Faulty current sensor.
+
+# Wrong sensor measurement
+MEASUREMENT F RTU_GLOBAL_M41_I 0.35

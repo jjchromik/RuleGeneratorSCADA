@@ -1,0 +1,4 @@
+# Sensitive data should never be included into docker build
+**/*.pcap
+**/*.pcapng
+README.md

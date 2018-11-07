@@ -1,0 +1,40 @@
+OPTION name Masterthesis_GlobalKnowledge_Scenario_2
+OPTION description Scenario 2: Topology for scenario evaluation in master thesis. Consistency checks: Faulty current, voltage, switch, power and tap position measurement.
+
+# Wait some time...
+WAIT 3
+
+# Faulty current sensor at bus1 on line 3
+MEASUREMENT F RTU_BUS1_M31_I 0
+
+# Wait some time and reset...
+WAIT 3
+MEASUREMENT F RTU_BUS1_M31_I 90
+
+# Faulty voltage sensor at bus1 on line 3
+MEASUREMENT F RTU_BUS1_M31_V 10
+
+# Wait some time and reset...
+WAIT 3
+MEASUREMENT F RTU_BUS1_M31_V 10000
+
+# Faulty switch state reported at bus1 on line 3
+MEASUREMENT B RTU_BUS1_SW31_STATE False
+
+# Wait some time and reset...
+WAIT 3
+MEASUREMENT B RTU_BUS1_SW31_STATE True
+
+# Faulty power state reported at generator1
+MEASUREMENT F RTU_GENCON_G1_P 700000
+
+# Wait some time and reset...
+WAIT 3
+MEASUREMENT F RTU_GENCON_G1_P 1700000
+
+# Faulty tap position reported at transformer2
+MEASUREMENT F RTU_BUS3T_T2_TAP 2
+
+# Wait some time and reset...
+WAIT 3
+MEASUREMENT F RTU_BUS3T_T2_TAP 1

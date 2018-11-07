@@ -1,0 +1,11 @@
+OPTION name To_TransfFuseRelay_Scenario4
+OPTION description Scenario 4: Basic Transformer / Fuse / Protective Relay Example. Transformer tap position change (new Voltage okay).
+
+# Set transformer tap positions
+MEASUREMENT F RTU_GLOBAL_T1_TAP 1
+
+# Set current and voltage for all meters
+MEASUREMENT F RTU_GLOBAL_M42_I 0.225
+MEASUREMENT F RTU_GLOBAL_M42_V 213.33333
+MEASUREMENT F RTU_GLOBAL_M43_I 0.225
+MEASUREMENT F RTU_GLOBAL_M43_V 213.33333

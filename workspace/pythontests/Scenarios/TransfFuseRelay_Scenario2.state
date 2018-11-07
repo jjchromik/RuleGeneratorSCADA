@@ -1,0 +1,5 @@
+OPTION name To_TransfFuseRelay_Scenario2
+OPTION description Scenario 2: Basic Transformer / Fuse / Protective Relay Example. Faulty protective relay state sensor (current flowing, but protective relay says it is open).
+
+# Set protective relay state
+MEASUREMENT B RTU_GLOBAL_PR52_STATE False

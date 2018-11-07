@@ -1,0 +1,218 @@
+ 
+grammar ./t104.spicy;
+
+protocol analyzer spicy::T104 over TCP:
+ 	parse with T104::Apcis,
+ 	port 2404/tcp;
+
+################################
+# APCI and APCI modes (U, S, I)#
+################################
+
+on T104::Apci -> 
+	event t104::apci($conn, self.apduLen, self.ctrl.mode, self.ctrl.i_send_seq, self.ctrl.u_start_dt, self.ctrl.u_stop_dt, self.ctrl.u_test_fr, self.ctrl.recv_seq);
+
+on T104::Apci if (!self.ctrl.not_i_mode) -> 
+	event t104::i($conn, self.ctrl.i_send_seq, self.ctrl.recv_seq);
+
+on T104::Apci if (self.ctrl.mode == 1) -> 
+	event t104::s($conn, self.start, self.apduLen, self.ctrl.recv_seq);
+
+on T104::Apci if (self.ctrl.mode == 3) -> 
+	event t104::u($conn);
+
+
+####################################
+# ASDU and ASDU TypeIDs (functions)#
+####################################
+
+
+on T104::Asdu -> event t104::asdu($conn, T104::bro_cot(self), self.info_obj_type);
+
+#1: SP
+on T104::Single_Point_Information -> 
+	event t104::m_sp_na_1($conn, T104::bro_m_sp_na_1(self)) ;
+#3: DP
+on T104::Double_Point_Information -> 
+	event t104::m_dp_na_1($conn, T104::bro_m_dp_na_1(self)) ;
+#9: NV
+on T104::Measured_Value_Normalized_Value -> 
+	event t104::m_me_na_1($conn, T104::bro_m_me_na_1(self));
+#13: FP
+on T104::Measured_Value_Short_Floating_Point_Value -> 
+	event t104::m_me_nc_1($conn, T104::bro_m_me_nc_1(self));	
+#21: NV
+on T104::Measured_Value_Normalized_Value_WO_QDS -> 
+	event t104::m_me_nd_1($conn, T104::bro_m_me_nd_1(self));	
+#30: SP 
+on T104::Single_Point_Information_With_TTCP56 -> 
+	event t104::m_sp_tb_1($conn, T104::bro_m_sp_tb_1(self)) ;
+#31: DP
+on T104::Double_Point_Information_With_TTCP56 -> 
+	event t104::m_dp_tb_1($conn, T104::bro_m_dp_tb_1(self)) ;
+#34: NV
+on T104::Measured_Value_Normalized_Value_With_TTCP56 -> 
+	event t104::m_me_td_1($conn, T104::bro_m_me_td_1(self));
+#36: FP
+on T104::Measured_Value_Short_Floating_Point_With_TTCP56 -> 
+	event t104::m_me_tf_1($conn, T104::bro_m_me_tf_1(self));	
+#45: SP 
+on T104::Single_Command -> 
+	event t104::c_sc_na_1($conn, T104::bro_c_sc_na_1(self)) ;	
+#45: DP 
+on T104::Double_Command -> 
+	event t104::c_dc_na_1($conn, T104::bro_c_dc_na_1(self)) ;	
+#48: NV
+on T104::Set_Point_Command_Normalized_Value -> 
+	event t104::c_se_na_1($conn, T104::bro_c_se_na_1(self) ) ;
+#50: FP
+on T104::Set_Point_Command_Short_Floating_Point_Value -> 
+	event t104::c_se_nc_1($conn, T104::bro_c_se_nc_1(self) ) ;
+#58: SP 
+on T104::Single_Command_With_TTCP56 -> 
+	event t104::c_sc_ta_1($conn, T104::bro_c_sc_ta_1(self)) ;
+#59: DP 
+on T104::Double_Command_With_TTCP56 -> 
+	event t104::c_dc_ta_1($conn, T104::bro_c_dc_ta_1(self)) ;
+#61: NV
+on T104::Set_Point_Command_Normalized_Value_With_TTCP56 -> 
+	event t104::c_se_ta_1($conn, T104::bro_c_se_ta_1(self) ) ;
+#63: FP
+on T104::Set_Point_Command_Shot_Floating_Point_With_TTCP56 -> 
+	event t104::c_se_tc_1($conn, T104::bro_c_se_tc_1(self) ) ;
+
+
+#1
+on T104::Asdu if (self.info_obj_type == Info_obj_code::M_SP_NA_1) -> 
+	event t104::m_sp_na_asdu($conn, T104::bro_cot(self)) ;
+#2
+on T104::Asdu if (self.info_obj_type == Info_obj_code::M_SP_TA_1) -> 
+	event t104::m_sp_ta_asdu($conn, T104::bro_cot(self)) ;
+#3 
+on T104::Asdu if (self.info_obj_type == Info_obj_code::M_DP_NA_1) -> 
+	event t104::m_dp_na_asdu($conn, T104::bro_cot(self)) ;
+#5 
+on T104::Asdu if (self.info_obj_type == Info_obj_code::M_ST_NA_1) -> 
+	event t104::m_st_na_asdu($conn, T104::bro_cot(self)) ;
+#7 
+on T104::Asdu if (self.info_obj_type == Info_obj_code::M_BO_NA_1) -> 
+	event t104::m_bo_na_asdu($conn, T104::bro_cot(self)) ;
+#9 
+on T104::Asdu if (self.info_obj_type == Info_obj_code::M_ME_NA_1) -> 
+	event t104::m_me_na_asdu($conn, T104::bro_cot(self)) ;
+#11 
+on T104::Asdu if (self.info_obj_type == Info_obj_code::M_ME_NB_1) -> 
+	event t104::m_me_nb_asdu($conn, T104::bro_cot(self)) ;
+#13 
+on T104::Asdu if (self.info_obj_type == Info_obj_code::M_ME_NC_1) -> 
+	event t104::m_me_nc_asdu($conn, T104::bro_cot(self)) ;
+#30
+on T104::Asdu if (self.info_obj_type == Info_obj_code::M_SP_TB_1) -> 
+	event t104::m_sp_tb_asdu($conn, T104::bro_cot(self)) ;
+#31
+on T104::Asdu if (self.info_obj_type == Info_obj_code::M_DP_TB_1) -> 
+	event t104::m_dp_tb_asdu($conn, T104::bro_cot(self)) ;
+#32
+on T104::Asdu if (self.info_obj_type == Info_obj_code::M_ST_TB_1) -> 
+	event t104::m_st_tb_asdu($conn, T104::bro_cot(self)) ;
+#33
+on T104::Asdu if (self.info_obj_type == Info_obj_code::M_BO_TB_1) -> 
+	event t104::m_bo_tb_asdu($conn, T104::bro_cot(self)) ;
+#34
+on T104::Asdu if (self.info_obj_type == Info_obj_code::M_ME_TD_1) -> 
+	event t104::m_me_td_asdu($conn, T104::bro_cot(self));
+#35
+on T104::Asdu if (self.info_obj_type == Info_obj_code::M_ME_TE_1) -> 
+	event t104::m_me_te_asdu($conn, T104::bro_cot(self));
+#36 
+on T104::Asdu if (self.info_obj_type == Info_obj_code::M_ME_TF_1) -> 
+	event t104::m_me_tf_asdu($conn, T104::bro_cot(self)) ;
+#45 
+on T104::Asdu if (self.info_obj_type == Info_obj_code::C_SC_NA_1) -> 
+	event t104::c_sc_na_asdu($conn, T104::bro_cot(self)) ;
+#46 
+on T104::Asdu if (self.info_obj_type == Info_obj_code::C_DC_NA_1) -> 
+	event t104::c_dc_na_asdu($conn, T104::bro_cot(self)) ;
+#47 
+on T104::Asdu if (self.info_obj_type == Info_obj_code::C_RC_NA_1) -> 
+	event t104::c_rc_na_asdu($conn, T104::bro_cot(self)) ;
+#48
+on T104::Asdu if (self.info_obj_type == Info_obj_code::C_SE_NA_1) -> 
+	event t104::c_se_na_asdu($conn, T104::bro_cot(self)) ;
+#49
+on T104::Asdu if (self.info_obj_type == Info_obj_code::C_SE_NB_1) -> 
+	event t104::c_se_nb_asdu($conn, T104::bro_cot(self)) ;
+#50 
+on T104::Asdu if (self.info_obj_type == Info_obj_code::C_SE_NC_1) -> 
+	event t104::c_se_nc_asdu($conn, T104::bro_cot(self)) ;
+#51 
+on T104::Asdu if (self.info_obj_type == Info_obj_code::C_BO_NA_1) -> 
+	event t104::c_bo_na_asdu($conn, T104::bro_cot(self)) ;
+#58 
+on T104::Asdu if (self.info_obj_type == Info_obj_code::C_SC_TA_1) -> 
+	event t104::c_sc_ta_asdu($conn, T104::bro_cot(self)) ;
+#61 
+on T104::Asdu if (self.info_obj_type == Info_obj_code::C_SE_TA_1) -> 
+	event t104::c_se_ta_asdu($conn, T104::bro_cot(self) ) ;
+#63 
+on T104::Asdu if (self.info_obj_type == Info_obj_code::C_SE_TC_1) -> 
+	event t104::c_se_tc_asdu($conn, T104::bro_cot(self) ) ;	
+#70 
+on T104::Asdu if (self.info_obj_type == Info_obj_code::M_EI_NA_1) -> 
+	event t104::($conn, T104::bro_cot(self)) ;
+#100
+on T104::Asdu if (self.info_obj_type == Info_obj_code::C_IC_NA_1) -> 
+	event t104::c_ic_na_asdu($conn, T104::bro_cot(self)) ;
+#101
+on T104::Asdu if (self.info_obj_type == Info_obj_code::C_CI_NA_1) -> 
+	event t104::c_ci_na_asdu($conn, T104::bro_cot(self)) ;
+#102
+on T104::Asdu if (self.info_obj_type == Info_obj_code::C_RD_NA_1) -> 
+	event t104::c_rd_na_asdu($conn, T104::bro_cot(self)) ;
+#103 
+on T104::Asdu if (self.info_obj_type == Info_obj_code::C_CS_NA_1) -> 
+	event t104::c_cs_na_asdu($conn, T104::bro_cot(self)) ;
+#107
+on T104::Asdu if (self.info_obj_type == Info_obj_code::C_TS_TA_1) -> 
+	event t104::c_ts_ta_asdu($conn, T104::bro_cot(self)) ;
+#136 
+on T104::Asdu if (self.info_obj_type == Info_obj_code::C_HU_NA_P) -> 
+	event t104::c_hu_na_p_asdu($conn, T104::bro_cot(self)) ;
+#137 
+on T104::Asdu if (self.info_obj_type == Info_obj_code::C_LD_NA_P) -> 
+	event t104::c_ld_na_p_asdu($conn, T104::bro_cot(self)) ;
+#142
+on T104::Asdu if (self.info_obj_type == Info_obj_code::C_IH_NA_P) -> 
+	event t104::c_ih_na_p_asdu($conn, T104::bro_cot(self)) ;
+#143
+on T104::Asdu if (self.info_obj_type == Info_obj_code::C_SU_NA_P) -> 
+	event t104::c_su_na_p_asdu($conn, T104::bro_cot(self)) ;
+#200
+on T104::Asdu if (self.info_obj_type == Info_obj_code::X_DS_NA_P) -> 
+	event t104::x_ds_na_p_asdu($conn, T104::bro_cot(self)) ;
+#201 X_MP_NA_P
+
+
+
+###################################
+#	 OTHER EVENTS 				  #
+###################################
+
+#on T104::Apci if (self.ctrl.mode == 3)
+#	-> event t104::u($conn, self.ctrl.u_start_dt, self.ctrl.u_stop_dt, self.ctrl.u_test_fr);
+
+#on T104::Apcis -> event t104::a($conn);
+
+#on TCP::tcp_packet -> event t104::a($conn);
+
+
+#on T104::Asdu if (self.data_unit_identifier.seq)
+#	-> event t104::asdu_seq1 ($conn, T104::bro_cot(self), self.info_obj_type,self.info_obj_addr);
+
+#on T104::Asdu if (!self.data_unit_identifier.seq)
+#	-> event t104::asdu_seq0 ($conn, T104::bro_cot(self), self.info_obj_type);
+
+
+
+
+###################################

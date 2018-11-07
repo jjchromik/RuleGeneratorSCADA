@@ -1,0 +1,5 @@
+OPTION name To_Alpha_GlobalKnowledge_Scenario_6
+OPTION description Scenario 6: Topology from Paper 'What's under the hood?'. Generator faulty power sensor.
+
+# Set a wrong power value for one generator
+MEASUREMENT F RTU_GLOBAL_G2_P 70

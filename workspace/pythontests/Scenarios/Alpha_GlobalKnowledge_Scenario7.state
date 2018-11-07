@@ -1,0 +1,5 @@
+OPTION name To_Alpha_GlobalKnowledge_Scenario_7
+OPTION description Scenario 7: Topology from Paper 'What's under the hood?'. Consumer faulty power sensor.
+
+# Set a wrong power value for one consumer
+MEASUREMENT F RTU_GLOBAL_C1_P 0.0

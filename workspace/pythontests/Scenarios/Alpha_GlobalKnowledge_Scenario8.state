@@ -1,0 +1,9 @@
+OPTION name To_Alpha_GlobalKnowledge_Scenario_8
+OPTION description Scenario 8: Topology from Paper 'What's under the hood?'. Test file for WAIT, C102 and COMMAND commands
+
+# Set a wrong power value for one consumer
+WAIT 2.5
+C102 RTU_GLOBAL_C1_P
+WAIT 2
+COMMAND B RTU_GLOBAL_SW51_STATE False
+MEASUREMENT F RTU_GLOBAL_M41_I 0.35

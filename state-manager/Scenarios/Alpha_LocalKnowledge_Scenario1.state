@@ -1,0 +1,4 @@
+OPTION name To_Alpha_LocalKnowledge_Scenario_1
+OPTION description Scenario 1: Topology from Paper 'What's under the hood?'. Normal operation.
+
+# No values set (Scenario 1 is BasicCase)

@@ -1,0 +1,38 @@
+OPTION name Masterthesis_GlobalKnowledge_Scenario_7
+OPTION description Scenario 7: Topology for scenario evaluation in master thesis. Safe and unsafe set point changes.
+
+# Wait some time...
+WAIT 3
+
+# Set set points at bus 2 on line 6 and 7 to safe values
+COMMAND F RTU_BUS2_M62_SP_I 295
+COMMAND F RTU_BUS2_M62_SP_V 9900
+COMMAND F RTU_BUS2_M72_SP_I 295
+COMMAND F RTU_BUS2_M72_SP_V 9900
+
+# Wait some time...
+WAIT 3
+
+# New measurements
+MEASUREMENT F RTU_BUS2_M62_SP_I 295
+MEASUREMENT F RTU_BUS2_M62_SP_V 9900
+MEASUREMENT F RTU_BUS2_M72_SP_I 295
+MEASUREMENT F RTU_BUS2_M72_SP_V 9900
+
+# Wait some time...
+WAIT 3
+
+# Set set points at bus 2 on line 6 and 7 to unsafe values
+COMMAND F RTU_BUS2_M62_SP_I 200
+COMMAND F RTU_BUS2_M62_SP_V 8000
+COMMAND F RTU_BUS2_M72_SP_I 400
+COMMAND F RTU_BUS2_M72_SP_V 12000
+
+# Wait some time...
+WAIT 3
+
+# New measurements
+MEASUREMENT F RTU_BUS2_M62_SP_I 200
+MEASUREMENT F RTU_BUS2_M62_SP_V 8000
+MEASUREMENT F RTU_BUS2_M72_SP_I 400
+MEASUREMENT F RTU_BUS2_M72_SP_V 12000

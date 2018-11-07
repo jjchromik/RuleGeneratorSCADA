@@ -1,0 +1,38 @@
+OPTION name Masterthesis_GlobalKnowledge_Scenario_4
+OPTION description Scenario 4: Topology for scenario evaluation in master thesis. Safe second switch command
+
+# Wait some time...
+WAIT 3
+
+# Set switch at bus 1 on line 4 to open
+COMMAND B RTU_BUS1_SW41_STATE False
+
+# Wait some time until new measurements...
+WAIT 3
+
+# New measurements
+MEASUREMENT B RTU_BUS1_SW41_STATE False
+MEASUREMENT F RTU_BUS1_M31_I 135
+MEASUREMENT F RTU_BUS1_M41_I 0
+MEASUREMENT F RTU_BUS1_M51_I 135
+MEASUREMENT F RTU_BUS2_M32_I 135
+MEASUREMENT F RTU_BUS2_M42_I 0
+MEASUREMENT F RTU_BUS2_M52_I 135
+
+# Wait some time...
+WAIT 3
+
+# Set switch at bus 1 on line 5 to open
+COMMAND B RTU_BUS1_SW51_STATE False
+
+# Wait some time until new measurements...
+WAIT 3
+
+# New measurements
+MEASUREMENT B RTU_BUS1_SW51_STATE False
+MEASUREMENT F RTU_BUS1_M31_I 270
+MEASUREMENT F RTU_BUS1_M41_I 0
+MEASUREMENT F RTU_BUS1_M51_I 0
+MEASUREMENT F RTU_BUS2_M32_I 270
+MEASUREMENT F RTU_BUS2_M42_I 0
+MEASUREMENT F RTU_BUS2_M52_I 0
