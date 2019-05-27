@@ -1,4 +1,4 @@
-# SAM: A prototype implementation for process-aware intrusion detection in electrical grids (IEC-60870-5-104, Zeek)
+# Self-Aware Monitor (SAM): A prototype implementation for process-aware intrusion detection in electrical grids (IEC-60870-5-104, Zeek)
 
 ## Overview
 This project is a prototype implementation of a process-aware, network-based intrusion detection which generates rules from physical process descriptions and RTU configurations. It uses an electrical grid model to evaluate a set of consistency and safety rules that were defined in the master thesis. The prototype works with Bro, which is the process variable source for the intrusion detection model. Values are obtained from network traffic, which contains IEC-60870-5-104 (short: IEC-104) control traffic. Bro parses, interprets and converts the raw traffic's contents according to an RTU configuration and triggers events via broccoli in the protocol-independent Python component of the IDS.
